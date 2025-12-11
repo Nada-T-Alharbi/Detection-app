@@ -1,120 +1,901 @@
 <!DOCTYPE html>
 {% load static %}
-
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" type="text/css" href="{% static  "CSS/style.css" %}">
-    <title>Document</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DRUGIMPRINT - Neural Detection System</title>
+
+    <!-- Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
-    <script>
-        let selectedMethod = 'eye'; // Default method
-
-        function chooseMethod(method) {
-            selectedMethod = method;
-            document.querySelectorAll('.method-options button').forEach(btn => {
-                btn.classList.remove('selected');
-            });
-            document.getElementById(method + 'Btn').classList.add('selected');
-            document.getElementById("type").value =method;
-            
+     <style>
+         * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        function classifyImage() {
-            const fileInput = document.getElementById('fileInput');
-            const file = fileInput.files[0];
-            if (file) {
-                const fileType = document.getElementById('type').value;
-                
-                if (fileType) {
-                    var formData = new FormData($("#ScreenForm")[0]);
-
-                    $.ajax({
-                        method: "post",
-                        contentType: false,
-                        processData: false,
-                        data: formData,
-                        beforeSend: function (xhr) {
-                            xhr.setRequestHeader(
-                            "X-CSRFToken",
-                            $("input[name=csrfmiddlewaretoken]").val()
-                            );
-                        },
-                    
-                        success: function (data) {
-
-                            if (data.status == "1") {
-                                Swal.fire({
-                                    title: data.msg,
-                                    text: "",
-                                    icon: "success"
-                                  });
-                                  
-                                
-                            
-                            }
-                            else {
-                                alert(data.msg);
-                            }
-                            
-                        },
-                        error: function (xhr, status, error) {
-                            console.error(error);
-                        },
-                    });
-                
-                    } 
-                else {
-                        alert('Please select an Eye of Face.');
-                    }
-                } else {
-                    alert('Please select an image.');
-                }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            position: relative;
+            overflow-x: hidden;
         }
 
-        function displayClassificationResult(result) {
-            document.getElementById('classificationResult').innerText = result;
-            document.getElementById('resultPopup').style.display = 'block';
+        /* Animated background particles */
+        body::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+            animation: float 20s ease-in-out infinite;
         }
 
-        function closePopup() {
-            document.getElementById('resultPopup').style.display = 'none';
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
         }
 
+        /* ========================================
+           MAIN CONTAINER - Responsive Layout
+           ======================================== */
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: white;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.35);
+            position: relative;
+            z-index: 1;
+            animation: slideUp 0.6s ease-out;
+        }
 
-    </script>
-</head>
-<body>
-    <div class="container">
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ========================================
+           HEADER SECTION
+           ======================================== */
+        .header {
+            background: linear-gradient(135deg, #1a365d 0%, #2c5282 100%);
+            padding: 50px 30px 40px;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: headerPulse 8s ease-in-out infinite;
+        }
+
+        @keyframes headerPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .logo {
+            width: 90px;
+            height: 90px;
+            margin: 0 auto 20px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            position: relative;
+            z-index: 1;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .logo:hover {
+            transform: scale(1.05) rotate(5deg);
+        }
+
+        .logo svg {
+            width: 50px;
+            height: 50px;
+            fill: white;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+        }
+
+        .header h1 {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 1;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.95;
+            font-weight: 400;
+            position: relative;
+            z-index: 1;
+            letter-spacing: 0.5px;
+        }
+
+        /* ========================================
+           CONTENT SECTION
+           ======================================== */
+        .content {
+            padding: 35px 30px 40px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 10px;
+            letter-spacing: -0.5px;
+        }
+
+        .section-subtitle {
+            font-size: 14px;
+            color: #718096;
+            margin-bottom: 28px;
+            line-height: 1.6;
+        }
+
+        /* ========================================
+           METHOD CARDS - Responsive Grid
+           ======================================== */
+        .method-cards {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+
+        .method-card {
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 22px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: flex-start;
+            gap: 18px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .method-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(79, 209, 197, 0.1), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .method-card:hover::before {
+            left: 100%;
+        }
+
+        .method-card:hover {
+            border-color: #4fd1c5;
+            background: #f0fdfa;
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 8px 20px rgba(79, 209, 197, 0.25);
+        }
+
+        .method-card.selected {
+            border-color: #38b2ac;
+            background: linear-gradient(135deg, #e6fffa 0%, #f0fdfa 100%);
+            box-shadow: 0 8px 24px rgba(79, 209, 197, 0.3);
+            transform: scale(1.02);
+        }
+
+        .method-card.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 28px;
+            height: 28px;
+            background: #38b2ac;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(56, 178, 172, 0.4);
+        }
+
+        .method-icon {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #4fd1c5 0%, #38b2ac 100%);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(79, 209, 197, 0.3);
+            transition: transform 0.3s ease;
+        }
+
+        .method-card:hover .method-icon {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .method-icon svg {
+            width: 32px;
+            height: 32px;
+            fill: white;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+        }
+
+        .method-info {
+            flex: 1;
+            text-align: left;
+            padding-right: 35px;
+        }
+
+        .method-info h3 {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 6px;
+            letter-spacing: -0.3px;
+        }
+
+        .method-info p {
+            font-size: 13px;
+            color: #718096;
+            line-height: 1.5;
+        }
+
+        /* ========================================
+           INFO BOX
+           ======================================== */
+        .info-box {
+            background: linear-gradient(135deg, #edf2f7 0%, #e2e8f0 100%);
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 28px;
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+            border: 1px solid #cbd5e0;
+        }
+
+        .info-icon {
+            width: 22px;
+            height: 22px;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .info-icon svg {
+            width: 100%;
+            height: 100%;
+            fill: #4a5568;
+        }
+
+        .info-text {
+            font-size: 12px;
+            color: #4a5568;
+            line-height: 1.6;
+        }
+
+        /* ========================================
+           FILE UPLOAD SECTION - Enhanced UI
+           ======================================== */
+        .upload-section {
+            margin-bottom: 24px;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: block;
+            width: 100%;
+        }
+
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-input-label {
+            display: block;
+            padding: 20px;
+            background: white;
+            border: 2px dashed #cbd5e0;
+            border-radius: 14px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 15px;
+            color: #718096;
+            font-weight: 500;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .file-input-label::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(79, 209, 197, 0.05), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .file-input-label:hover::before {
+            left: 100%;
+        }
+
+        .file-input-label:hover {
+            border-color: #4fd1c5;
+            background: #f0fdfa;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 209, 197, 0.15);
+        }
+
+        .file-selected {
+            border-color: #38b2ac;
+            background: linear-gradient(135deg, #e6fffa 0%, #f0fdfa 100%);
+            color: #1a202c;
+            border-style: solid;
+            box-shadow: 0 4px 12px rgba(79, 209, 197, 0.2);
+        }
+
+        /* ========================================
+           CLASSIFY BUTTON - Premium Design
+           ======================================== */
+        .classify-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #4fd1c5 0%, #38b2ac 100%);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-size: 17px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 6px 20px rgba(79, 209, 197, 0.4);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .classify-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .classify-btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .classify-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(79, 209, 197, 0.5);
+        }
+
+        .classify-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .classify-btn:disabled {
+            background: linear-gradient(135deg, #cbd5e0 0%, #a0aec0 100%);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        /* ========================================
+           FOOTER NOTE
+           ======================================== */
+        .footer-note {
+            text-align: center;
+            font-size: 11px;
+            color: #a0aec0;
+            margin-top: 24px;
+            font-style: italic;
+            letter-spacing: 0.3px;
+        }
+
+        /* ========================================
+           POPUP / MODAL
+           ======================================== */
+        .popup {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(8px);
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .popup-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 35px;
+            border-radius: 24px;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.4);
+            animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px) scale(0.95);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        .popup-content h2 {
+            color: #1a202c;
+            margin-bottom: 15px;
+            font-size: 24px;
+        }
+
+        .close {
+            color: #a0aec0;
+            float: right;
+            font-size: 32px;
+            font-weight: bold;
+            line-height: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .close:hover {
+            color: #2d3748;
+            transform: rotate(90deg);
+        }
+
+        /* ========================================
+           RESPONSIVE DESIGN
+           ======================================== */
         
-        <div class="box">
-            <h2>Let's check the </h2>
-            <div class="method-options">
-                <button id="eyeBtn" onclick="chooseMethod('eye')">Eye</button>
-                <button id="faceBtn" onclick="chooseMethod('face')">Face</button>
+        /* Tablets and larger phones (landscape) */
+        @media (min-width: 600px) {
+            .container {
+                max-width: 550px;
+            }
+
+            .content {
+                padding: 40px 35px 45px;
+            }
+
+            .section-title {
+                font-size: 20px;
+            }
+
+            .section-subtitle {
+                font-size: 15px;
+            }
+
+            .method-cards {
+                gap: 18px;
+            }
+
+            .method-card {
+                padding: 24px;
+            }
+
+            .method-info h3 {
+                font-size: 17px;
+            }
+
+            .method-info p {
+                font-size: 14px;
+            }
+        }
+
+        /* Small laptops and tablets (landscape) */
+        @media (min-width: 768px) {
+            body {
+                padding: 30px;
+            }
+
+            .container {
+                max-width: 600px;
+            }
+
+            .header {
+                padding: 60px 40px 50px;
+            }
+
+            .logo {
+                width: 100px;
+                height: 100px;
+            }
+
+            .logo img {
+                width: 55px;
+                height: 55px;
+            }
+
+            .header h1 {
+                font-size: 26px;
+                letter-spacing: 4px;
+            }
+
+            .header p {
+                font-size: 15px;
+            }
+
+            .content {
+                padding: 45px 40px 50px;
+            }
+
+            .method-cards {
+                gap: 20px;
+            }
+
+            .classify-btn {
+                padding: 20px;
+                font-size: 18px;
+            }
+
+            .popup-content {
+                margin: 12% auto;
+                padding: 40px;
+            }
+        }
+
+        /* Desktops and large screens */
+        @media (min-width: 1024px) {
+            .container {
+                max-width: 650px;
+            }
+
+            .method-cards {
+                grid-template-columns: 1fr 1fr;
+                gap: 20px;
+            }
+
+            .method-info {
+                padding-right: 10px;
+            }
+
+            .method-card.selected::after {
+                top: 10px;
+                right: 10px;
+            }
+        }
+
+        /* Extra large screens */
+        @media (min-width: 1440px) {
+            .container {
+                max-width: 700px;
+            }
+
+            .header {
+                padding: 70px 50px 60px;
+            }
+
+            .content {
+                padding: 50px 50px 60px;
+            }
+        }
+
+        /* Ultra-wide screens */
+        @media (min-width: 1920px) {
+            .container {
+                max-width: 750px;
+                border-radius: 28px;
+            }
+
+            .header {
+                border-radius: 28px 28px 0 0;
+            }
+        }
+
+        /* Small mobile devices */
+        @media (max-width: 375px) {
+            .content {
+                padding: 30px 20px 35px;
+            }
+
+            .header {
+                padding: 40px 20px 35px;
+            }
+
+            .method-card {
+                padding: 18px;
+                gap: 14px;
+            }
+
+            .method-icon {
+                width: 50px;
+                height: 50px;
+            }
+
+            .method-icon svg {
+                width: 28px;
+                height: 28px;
+            }
+
+            .method-info h3 {
+                font-size: 15px;
+            }
+
+            .method-info p {
+                font-size: 12px;
+            }
+
+            .classify-btn {
+                font-size: 15px;
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+
+    <!-- HEADER -->
+    <div class="header">
+        <div class="logo">
+            <img src="{% static 'img/logoooo.png' %}" alt="DRUGIMPRINT Logo" width="55">
+        </div>
+
+        <h1>DRUGIMPRINT</h1>
+        <p>Neural Detection System</p>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+        <h2 class="section-title">Choose Analysis Method</h2>
+        <p class="section-subtitle">Select how you want to perform the detection scan</p>
+
+        <!-- METHOD CARDS -->
+        <div class="method-cards">
+            <div class="method-card" id="eyeCard" onclick="chooseMethod('eye')">
+                <div class="method-icon">
+                  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+                        </svg>
+                </div>
+                <div>
+                    <h3>Analyze by Eye</h3>
+                    <p>Advanced pupil dilation analysis</p>
+                </div>
             </div>
-            <h3>Choose the image </h3>
-            <form method="post" id="ScreenForm" enctype="multipart/form-data" >
-                {% csrf_token %}
-                <input type="hidden" id="type" name="type">
-                <input type="file" name="image" id="fileInput" accept="image/*">
-                <button type="button" onclick="classifyImage()">Classify Image</button>
-                
 
-            </form>
-            <div id="imagePreview" class="image-preview"></div>
+            <div class="method-card" id="faceCard" onclick="chooseMethod('face')">
+                <div class="method-icon">
+                  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M9 11.75c-.69 0-1.25.56-1.25 1.25s.56 1.25 1.25 1.25 1.25-.56 1.25-1.25-.56-1.25-1.25-1.25zm6 0c-.69 0-1.25.56-1.25 1.25s.56 1.25 1.25 1.25 1.25-.56 1.25-1.25-.56-1.25-1.25-1.25zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8 0-.29.02-.58.05-.86 2.36-1.05 4.23-2.98 5.21-5.37C11.07 8.33 14.05 10 17.42 10c.78 0 1.53-.09 2.25-.26.21.71.33 1.47.33 2.26 0 4.41-3.59 8-8 8z"/>
+                        </svg>
+                </div>
+                <div>
+                    <h3>Analyze by Face</h3>
+                    <p>Facial micro-expression detection</p>
+                </div>
+            </div>
         </div>
-    </div>
 
-    <div id="resultPopup" class="popup">
-        <div class="popup-content">
-            <span class="close" onclick="closePopup()">&times;</span>
-            <h2>Classification Result</h2>
-            <p id="classificationResult"></p>
-        </div>
+        <!-- UPLOAD FORM -->
+        <form method="post" id="ScreenForm" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="hidden" name="type" id="type" value="eye">
+
+            <label for="fileInput" class="file-input-label" id="fileLabel">📁 Choose an image to analyze</label>
+            <input type="file" id="fileInput" name="image" accept="image/*" onchange="handleFileSelect(this)" hidden>
+
+            <button type="button" class="classify-btn" onclick="classifyImage()">
+                Classify Image
+            </button>
+        </form>
+
     </div>
+</div>
+
+<!-- ——————————————— JAVASCRIPT ——————————————— -->
+<script>
+
+document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("eyeCard").classList.add("selected");
+});
+
+function chooseMethod(method) {
+    document.getElementById("eyeCard").classList.remove("selected");
+    document.getElementById("faceCard").classList.remove("selected");
+
+    document.getElementById(method + "Card").classList.add("selected");
+    document.getElementById("type").value = method;
+}
+
+function handleFileSelect(input) {
+    const label = document.getElementById("fileLabel");
+    if (input.files.length > 0) {
+        label.textContent = "✓ " + input.files[0].name;
+        label.classList.add("file-selected");
+    } else {
+        label.textContent = "📁 Choose an image to analyze";
+        label.classList.remove("file-selected");
+    }
+}
+
+function classifyImage() {
+    const formData = new FormData(document.getElementById("ScreenForm"));
+
+    $.ajax({
+        url: "/",
+        method: "POST",
+        contentType: false,
+        processData: false,
+        data: formData,
+
+        beforeSend: function (xhr) {
+            xhr.setRequestHeader("X-CSRFToken", $("input[name=csrfmiddlewaretoken]").val());
+
+            Swal.fire({
+                title: "Analyzing...",
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+        },
+
+        success: function (data) {
+            Swal.close();
+
+            if (data.status === "1" && data.msg === "Normal") {
+                showNormalPopup(data.confidence);
+            } 
+            else if (data.status === "1" && data.msg === "Abnormal") {
+                showAbnormalPopup(data.confidence);
+            } 
+            else {
+                Swal.fire("Error", data.msg, "error");
+            }
+        },
+
+        error: function () {
+            Swal.fire("Server Error", "Please try again.", "error");
+        }
+    });
+}
+
+/* ——————————————— POPUP TEMPLATES ——————————————— */
+
+function showNormalPopup(confidence) {
+    Swal.fire({
+        html: `
+        <div style="background: linear-gradient(135deg,#37d087,#19b47e); padding:25px; border-radius:16px; color:white; text-align:center;">
+            <div style="font-size:60px;">✔️</div>
+            <h2>Scan Complete</h2>
+            <p>No substance influence detected</p>
+        </div>
+
+        <div style="padding:20px; text-align:left;">
+
+            <h3 style="color:#1a202c;">Confidence Level</h3>
+            <div style="background:#e2f7e9; padding:12px; border-radius:10px; font-size:20px; font-weight:bold;">
+                ${confidence}% accuracy
+            </div>
+
+            <h3 style="margin-top:20px;">Eye Analysis</h3>
+            ${normalItem("Pupil Response")}
+            ${normalItem("Eye Movement")}
+            ${normalItem("Facial Micro-expressions")}
+            ${normalItem("Blink Rate")}
+
+        </div>
+        `,
+        showCloseButton: true,
+        showConfirmButton: false,
+        width: "420px"
+    });
+}
+
+function normalItem(title) {
+    return `
+        <div style="background:#f0fdf4; border:1px solid #c6f6d5; padding:12px; border-radius:10px; margin-bottom:10px; display:flex; justify-content:space-between;">
+            <span>${title}</span>
+            <span style="color:#2f855a; font-weight:bold;">Normal</span>
+        </div>
+    `;
+}
+
+function showAbnormalPopup(confidence) {
+    Swal.fire({
+        html: `
+        <div style="background: linear-gradient(135deg,#d92020,#b30000); padding:25px; border-radius:16px; color:white; text-align:center;">
+            <div style="font-size:60px;">⚠️</div>
+            <h2>DANGER</h2>
+            <p>High probability of substance abuse detected</p>
+            <h3 style="margin-top:10px;">${confidence}% confidence</h3>
+        </div>
+
+        <div style="padding:20px; text-align:left;">
+
+            <h3 style="color:#1a202c;">Critical Indicators</h3>
+            ${criticalItem("Pupil Dilation", "Abnormal deviation")}
+            ${criticalItem("Eye Movement", "Irregular patterns detected")}
+            ${criticalItem("Facial Micro-expressions", "Multiple anomalies found")}
+
+        </div>
+        `,
+        confirmButtonText: "Take Action",
+        confirmButtonColor: "#b30000",
+        showCloseButton: true,
+        width: "420px"
+    });
+}
+
+function criticalItem(title, status) {
+    return `
+        <div style="background:#fff5f5; border:1px solid #feb2b2; padding:12px; border-radius:10px; margin-bottom:10px;">
+            <strong>${title}</strong><br>
+            <span>${status}</span>
+        </div>
+    `;
+}
+
+</script>
+
 </body>
 </html>
