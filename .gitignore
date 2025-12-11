@@ -11,9 +11,8 @@ __pycache__/
 db.sqlite3
 
 # Ignore model weights / large files
-*.pt
-*.tflite
-*.jpg
+
+
 
 # Ignore runs/logs
 runs/
